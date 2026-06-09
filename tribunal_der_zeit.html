@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Das Tribunal der Zeit – Wandel der Weltbilder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-dark: #1a1208;
+    --bg-mid: #2c1f0e;
+    --accent: #00e5b0;
+    --accent2: #f0c040;
+    --red: #e03030;
+    --text: #f0e8d0;
+    --box-bg: rgba(0,0,0,0.72);
+    --box-border: rgba(255,255,255,0.15);
+    --bellarmino: #c0392b;
+    --ptolemy: #c9a227;
+    --kopernikus: #8B5E3C;
+    --galilei: #2471a3;
+    --player: #1e8449;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND CANVAS ── */
+  #bg-canvas { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── OVERLAY for all screens ── */
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .screen.hidden { display: none !important; }
+
+  /* ── LOGIN ── */
+  #login-screen .card {
+    background: var(--box-bg);
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 40px 48px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    backdrop-filter: blur(6px);
+  }
+  #login-screen h1 {
+    font-size: 2rem; color: var(--accent2);
+    font-family: cursive, serif;
+    margin-bottom: 4px;
+  }
+  #login-screen .subtitle { color: var(--accent); font-size: 1rem; margin-bottom: 28px; }
+  #login-screen label { display: block; text-align: left; margin-bottom: 6px; font-size: 0.9rem; color: var(--accent2); }
+  #login-screen input, #login-screen select {
+    width: 100%; padding: 10px 14px;
+    border-radius: 8px; border: 1.5px solid var(--accent);
+    background: rgba(255,255,255,0.07); color: var(--text);
+    font-size: 1rem; margin-bottom: 18px;
+  }
+  #login-screen input:focus, #login-screen select:focus { outline: none; border-color: var(--accent2); }
+  .btn-primary {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 10px; padding: 12px 32px;
+    font-size: 1.05rem; font-weight: bold; cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .btn-primary:hover { transform: scale(1.04); opacity: 0.92; }
+  .btn-secondary {
+    background: transparent; color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: 10px;
+    padding: 9px 22px; font-size: 0.95rem; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: rgba(0,229,176,0.12); }
+
+  /* ── GAME SCREEN ── */
+  #game-screen { flex-direction: column; align-items: stretch; padding: 0; }
+
+  /* HUD */
+  #hud {
+    position: relative; z-index: 20;
+    background: rgba(0,0,0,0.82);
+    border-bottom: 2px solid var(--accent);
+    padding: 8px 18px;
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  #hud .hud-title {
+    font-family: cursive, serif; color: var(--accent2);
+    font-size: 1.1rem; flex: 1;
+  }
+  #hud .hud-name { font-size: 0.85rem; color: var(--accent); }
+  #hud .hud-score { font-size: 0.9rem; color: var(--accent2); font-weight: bold; }
+  #hud .hud-scene { font-size: 0.8rem; color: rgba(255,255,255,0.45); }
+  #progress-bar-wrap {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+    border-radius: 3px; overflow: hidden; margin-top: 4px;
+  }
+  #progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
+  #read-timer-bar-wrap {
+    width: 100%; height: 4px; background: rgba(255,255,255,0.08);
+    border-radius: 2px; overflow: hidden;
+  }
+  #read-timer-bar { height: 100%; background: var(--accent2); width: 100%; transition: width 1s linear; }
+  #read-timer-msg { font-size: 0.78rem; color: rgba(255,255,255,0.55); min-height: 16px; }
+
+  /* MAIN CONTENT AREA */
+  #main-area {
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 24px 16px 40px;
+  }
+
+  /* SCENE CARD */
+  .scene-card {
+    background: var(--box-bg);
+    border: 1.5px solid var(--box-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    max-width: 780px;
+    width: 100%;
+    backdrop-filter: blur(4px);
+  }
+  .scene-card h2 {
+    font-family: cursive, serif;
+    font-size: 1.6rem; color: var(--accent2);
+    margin-bottom: 6px;
+  }
+  .scene-card .scene-subtitle {
+    color: var(--accent); font-size: 0.95rem; margin-bottom: 20px;
+  }
+
+  /* CHARACTER HEADER */
+  .char-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+  }
+  .char-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; flex-shrink: 0;
+    border: 2px solid;
+  }
+  .char-name { font-size: 1.1rem; font-weight: bold; }
+  .char-role { font-size: 0.82rem; opacity: 0.75; }
+
+  .char-bellarmino .char-avatar { background: rgba(192,57,43,0.25); border-color: var(--bellarmino); }
+  .char-bellarmino .char-name { color: var(--bellarmino); }
+  .char-ptolemy .char-avatar { background: rgba(201,162,39,0.2); border-color: var(--ptolemy); }
+  .char-ptolemy .char-name { color: var(--ptolemy); }
+  .char-kopernikus .char-avatar { background: rgba(139,94,60,0.2); border-color: var(--kopernikus); }
+  .char-kopernikus .char-name { color: var(--kopernikus); }
+  .char-galilei .char-avatar { background: rgba(36,113,163,0.2); border-color: var(--galilei); }
+  .char-galilei .char-name { color: var(--galilei); }
+  .char-player .char-avatar { background: rgba(30,132,73,0.2); border-color: var(--player); }
+  .char-player .char-name { color: var(--player); }
+
+  /* SPEECH BUBBLE */
+  .speech-text {
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+  .speech-text em { color: var(--accent2); font-style: normal; font-weight: bold; }
+  .speech-text .highlight { color: var(--accent); font-weight: bold; }
+
+  /* STORY TEXT */
+  .story-text { font-size: 1rem; line-height: 1.7; margin-bottom: 20px; }
+  .story-text em { color: var(--accent2); font-style: normal; font-weight: bold; }
+  .story-text .highlight { color: var(--accent); font-weight: bold; }
+
+  /* BUTTONS */
+  .scene-footer { text-align: center; margin-top: 10px; }
+  .btn-next {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 10px; padding: 12px 36px;
+    font-size: 1.05rem; font-weight: bold; cursor: pointer;
+    transition: transform 0.15s;
+    display: inline-block;
+  }
+  .btn-next:hover { transform: scale(1.04); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* QUIZ */
+  .quiz-question {
+    font-size: 1.05rem; font-weight: bold; color: var(--accent2);
+    margin-bottom: 18px; line-height: 1.5;
+  }
+  .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .quiz-option {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px; padding: 12px 18px;
+    cursor: pointer; font-size: 0.97rem; line-height: 1.4;
+    transition: background 0.15s, border-color 0.15s;
+    text-align: left; color: var(--text);
+  }
+  .quiz-option:hover:not(:disabled) { background: rgba(0,229,176,0.12); border-color: var(--accent); }
+  .quiz-option.correct { background: rgba(30,180,80,0.2) !important; border-color: #1eb450 !important; }
+  .quiz-option.wrong { background: rgba(200,50,50,0.15) !important; border-color: var(--red) !important; opacity: 0.55; }
+  .quiz-option:disabled { cursor: not-allowed; }
+  .quiz-feedback { font-size: 0.9rem; min-height: 24px; margin-bottom: 8px; }
+  .quiz-feedback.ok { color: #1eb450; }
+  .quiz-feedback.err { color: var(--red); }
+
+  /* COLMATCH */
+  .colmatch-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .colmatch-col h3 {
+    text-align: center; font-size: 0.9rem; padding: 8px;
+    border-radius: 8px 8px 0 0; margin-bottom: 8px;
+    font-weight: bold;
+  }
+  .colmatch-col.geocol h3 { background: rgba(201,162,39,0.25); color: var(--ptolemy); }
+  .colmatch-col.heliocol h3 { background: rgba(36,113,163,0.2); color: var(--galilei); }
+  .colmatch-drop {
+    min-height: 80px;
+    border: 2px dashed rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 8px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .colmatch-drop.drag-over { border-color: var(--accent); background: rgba(0,229,176,0.06); }
+  .colmatch-pool {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .colmatch-tile {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 0.88rem; cursor: grab; line-height: 1.3;
+    user-select: none; transition: background 0.15s;
+  }
+  .colmatch-tile:hover { background: rgba(255,255,255,0.14); }
+  .colmatch-tile.placed-correct { background: rgba(30,180,80,0.2); border-color: #1eb450; }
+  .colmatch-tile.placed-wrong { background: rgba(200,50,50,0.15); border-color: var(--red); }
+  .colmatch-check-btn {
+    background: var(--accent2); color: #000;
+    border: none; border-radius: 10px; padding: 10px 28px;
+    font-size: 1rem; font-weight: bold; cursor: pointer; margin: 0 auto; display: block;
+  }
+  .colmatch-feedback { text-align: center; font-size: 0.9rem; min-height: 22px; margin-top: 8px; }
+
+  /* ROLE CHOICE */
+  .role-choices { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+  .role-choice-btn {
+    flex: 1; min-width: 200px;
+    padding: 20px 16px;
+    border-radius: 14px;
+    border: 2px solid;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .role-choice-btn:hover { transform: scale(1.03); }
+  .role-choice-btn.heliozen { border-color: var(--galilei); }
+  .role-choice-btn.heliozen:hover { background: rgba(36,113,163,0.15); }
+  .role-choice-btn.geozen { border-color: var(--ptolemy); }
+  .role-choice-btn.geozen:hover { background: rgba(201,162,39,0.15); }
+  .role-choice-btn .rc-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .role-choice-btn .rc-title { font-size: 1rem; font-weight: bold; margin-bottom: 6px; }
+  .role-choice-btn .rc-desc { font-size: 0.82rem; opacity: 0.75; line-height: 1.4; }
+
+  /* VOTE */
+  .vote-choices { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
+  .vote-btn {
+    flex: 1; min-width: 180px; padding: 18px;
+    border-radius: 12px; border: 2px solid;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer; text-align: center;
+    font-size: 1rem; font-weight: bold;
+    transition: transform 0.15s;
+  }
+  .vote-btn:hover { transform: scale(1.03); }
+  .vote-btn.guilty { border-color: var(--bellarmino); color: var(--bellarmino); }
+  .vote-btn.guilty:hover { background: rgba(192,57,43,0.15); }
+  .vote-btn.notguilty { border-color: var(--galilei); color: var(--galilei); }
+  .vote-btn.notguilty:hover { background: rgba(36,113,163,0.15); }
+  .vote-result-box {
+    border-radius: 12px; padding: 18px 20px;
+    margin: 14px 0; line-height: 1.6;
+    font-size: 0.97rem;
+  }
+  .vote-result-box.historic { background: rgba(192,57,43,0.12); border: 1.5px solid var(--bellarmino); }
+  .vote-result-box.science { background: rgba(30,130,255,0.1); border: 1.5px solid var(--galilei); }
+
+  /* SUMMARY */
+  .summary-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin: 16px 0;
+  }
+  .summary-cell {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 0.9rem; line-height: 1.5;
+  }
+  .summary-cell h4 { font-size: 0.85rem; color: var(--accent2); margin-bottom: 6px; }
+  .score-box {
+    text-align: center; padding: 20px;
+    background: rgba(0,229,176,0.08);
+    border: 1.5px solid var(--accent);
+    border-radius: 14px; margin: 16px 0;
+  }
+  .score-box .big-score { font-size: 2.8rem; font-weight: bold; color: var(--accent); }
+  .score-box .score-label { font-size: 0.9rem; opacity: 0.7; }
+
+  /* INTRO CARDS */
+  .char-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+  .char-card {
+    border-radius: 12px; padding: 14px 16px;
+    border: 1.5px solid; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .char-card .cc-avatar { font-size: 1.8rem; flex-shrink: 0; }
+  .char-card .cc-body {}
+  .char-card .cc-name { font-size: 0.95rem; font-weight: bold; margin-bottom: 2px; }
+  .char-card .cc-role { font-size: 0.8rem; opacity: 0.7; margin-bottom: 4px; }
+  .char-card .cc-desc { font-size: 0.82rem; opacity: 0.8; line-height: 1.4; }
+  .char-card.bc { border-color: var(--bellarmino); }
+  .char-card.bc .cc-name { color: var(--bellarmino); }
+  .char-card.pc { border-color: var(--ptolemy); }
+  .char-card.pc .cc-name { color: var(--ptolemy); }
+  .char-card.kc { border-color: var(--kopernikus); }
+  .char-card.kc .cc-name { color: var(--kopernikus); }
+  .char-card.gc { border-color: var(--galilei); }
+  .char-card.gc .cc-name { color: var(--galilei); }
+
+  /* TEACHER */
+  #teacher-btn {
+    position: fixed; top: 10px; right: 14px; z-index: 50;
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.55); border-radius: 8px;
+    padding: 5px 12px; font-size: 0.8rem; cursor: pointer;
+  }
+  #teacher-btn:hover { color: var(--accent); border-color: var(--accent); }
+  #teacher-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.92);
+    display: flex; flex-direction: column;
+    padding: 28px;
+    overflow-y: auto;
+  }
+  #teacher-overlay.hidden { display: none !important; }
+  #teacher-overlay h2 { color: var(--accent2); margin-bottom: 16px; font-family: cursive, serif; }
+  #teacher-overlay table {
+    width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 20px;
+  }
+  #teacher-overlay th, #teacher-overlay td {
+    border: 1px solid rgba(255,255,255,0.15); padding: 8px 12px; text-align: left;
+  }
+  #teacher-overlay th { background: rgba(0,229,176,0.1); color: var(--accent); }
+  .t-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .t-stat { background: rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 18px; flex: 1; min-width: 120px; }
+  .t-stat .ts-val { font-size: 1.5rem; font-weight: bold; color: var(--accent2); }
+  .t-stat .ts-lbl { font-size: 0.8rem; opacity: 0.65; }
+  .t-pw-wrap { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+  .t-pw-wrap input {
+    padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--accent);
+    background: rgba(255,255,255,0.07); color: var(--text); font-size: 0.95rem;
+  }
+  #teacher-content.hidden { display: none !important; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #000;
+    padding: 10px 24px; border-radius: 20px; font-weight: bold;
+    font-size: 0.95rem; z-index: 200; opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .scene-card { padding: 18px 14px; }
+    .colmatch-wrap { grid-template-columns: 1fr; }
+    .char-cards { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .role-choices { flex-direction: column; }
+    .vote-choices { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<button id="teacher-btn">🔐 Lehrkraft</button>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="screen">
+  <div class="card">
+    <h1>Das Tribunal der Zeit</h1>
+    <div class="subtitle">⚖️ Wandel der Weltbilder – ...und sie dreht sich doch...</div>
+    <label for="l-name">Dein Name</label>
+    <input id="l-name" type="text" placeholder="Vor- und Nachname" autocomplete="off">
+    <label for="l-class">Deine Klasse</label>
+    <input id="l-class" type="text" placeholder="z.B. 7b" autocomplete="off">
+    <button class="btn-primary" onclick="startGame()">Betreten ⚖️</button>
+  </div>
+</div>
+
+<!-- TEACHER OVERLAY -->
+<div id="teacher-overlay" class="hidden">
+  <h2>🔐 Lehreransicht – Tribunal der Zeit</h2>
+  <div class="t-pw-wrap">
+    <input id="t-pw" type="password" placeholder="Passwort eingeben…">
+    <button class="btn-primary" onclick="checkTeacherPw()">Entsperren</button>
+    <button class="btn-secondary" onclick="closeTeacher()">Schließen</button>
+  </div>
+  <div id="teacher-content" class="hidden">
+    <div class="t-stats" id="t-stats"></div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn-secondary" onclick="sortResults('date')">Nach Datum</button>
+      <button class="btn-secondary" onclick="sortResults('score')">Nach Punkte ↓</button>
+      <button class="btn-secondary" onclick="sortResults('name')">Nach Name</button>
+      <button class="btn-secondary" onclick="exportCSV()">CSV-Export</button>
+      <button class="btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="clearResults()">Daten löschen</button>
+    </div>
+    <table id="t-table">
+      <thead><tr><th>Name</th><th>Klasse</th><th>Punkte</th><th>Fehler</th><th>Rolle</th><th>Urteil</th><th>Datum</th></tr></thead>
+      <tbody id="t-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen hidden">
+  <div id="hud">
+    <div class="hud-title">⚖️ Das Tribunal der Zeit</div>
+    <div class="hud-name" id="hud-name"></div>
+    <div class="hud-score" id="hud-score">0 Punkte</div>
+    <div class="hud-scene" id="hud-scene"></div>
+    <div style="width:100%">
+      <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+    </div>
+  </div>
+  <div id="main-area"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// BACKGROUND CANVAS
+// ═══════════════════════════════════
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], t = 0;
+  function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+  function initStars(){
+    stars = [];
+    for(let i=0;i<120;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+0.3,s:Math.random()*0.8+0.2});
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#0d0805'); g.addColorStop(1,'#1a100a');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    t+=0.008;
+    stars.forEach(s=>{
+      const a=0.4+0.4*Math.sin(t*s.s+s.x);
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,240,200,${a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();initStars();});
+  resize(); initStars(); draw();
+})();
+
+// ═══════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════
+let player = { name:'', cls:'', score:0, errors:0, role:null, verdict:null };
+let currentScene = 'intro';
+let readTimerActive = false;
+let readTimerTO = null;
+const TOTAL_SCENES = 19;
+
+// ═══════════════════════════════════
+// SCENES DEFINITION
+// ═══════════════════════════════════
+const SCENES = {
+
+  intro: {
+    type:'story',
+    sceneNum:1,
+    title:'Das Tribunal der Zeit',
+    subtitle:'⚖️ Deine Mission',
+    text:`Du befindest dich im Jahr 1633 – aber nicht ganz. Eine geheime Zeitmaschine hat alle <em>Schlüsselfiguren des Weltbildwandels</em> an einen einzigen Ort gebracht: das <span class="highlight">Tribunal der Zeit</span>. Hier wird heute verhandelt, was die Menschen des 17. Jahrhunderts bewegte: Dreht sich die Erde um die Sonne – oder die Sonne um die Erde?
+
+Als <em>Geschworene/r</em> bist du Teil dieses Gerichts. Du wirst die Argumente beider Seiten anhören, Aufgaben lösen und am Ende ein Urteil fällen. Bereit für die Verhandlung?`,
+    next:'briefing'
+  },
+
+  briefing: {
+    type:'briefing',
+    sceneNum:2,
+    title:'Die Beteiligten',
+    subtitle:'Lerne die Figuren des Tribunals kennen',
+    next:'s_anklage'
+  },
+
+  s_anklage: {
+    type:'speech',
+    sceneNum:3,
+    char:'bellarmino',
+    title:'Die Anklage',
+    subtitle:'Kardinal Bellarmino eröffnet das Tribunal',
+    text:`„Galileo Galilei, du stehst vor diesem Tribunal angeklagt der <em>Ketzerei</em>! Du verbreitest die irrsinnige Behauptung, dass die <span class="highlight">Erde sich um die Sonne dreht</span> – und nicht umgekehrt. Die Heilige Schrift ist klar: Die Erde steht fest im Mittelpunkt der Schöpfung. Gott hat sie so erschaffen! Dein kleines Fernrohr gibt dir nicht das Recht, das göttliche Weltbild zu hinterfragen.
+
+Außerdem: Wenn die Erde sich wirklich bewegen würde, müssten wir es spüren. Steine, die man fallen lässt, würden doch daneben landen! Wir alle stehen fest auf dem Boden – das beweist, dass die Erde ruht."`,
+    next:'q_anklage'
+  },
+
+  q_anklage: {
+    type:'quiz',
+    sceneNum:4,
+    char:'bellarmino',
+    question:'Was sind Kardinal Bellarminos Argumente gegen Galilei? Wähle die <strong>richtige</strong> Antwort!',
+    options:[
+      { text:'Die Bibel beschreibt die Erde als ruhenden Mittelpunkt, und da wir keine Bewegung spüren, steht sie fest.', correct:true },
+      { text:'Galilei hat das Fernrohr ohne Erlaubnis der Kirche gebaut.', correct:false },
+      { text:'Die Sonne ist zu weit entfernt, um der Mittelpunkt zu sein.', correct:false },
+      { text:'Kopernikus hat Galilei belogen, deshalb ist sein Modell falsch.', correct:false },
+    ],
+    next:'s_ptolemaios'
+  },
+
+  s_ptolemaios: {
+    type:'speech',
+    sceneNum:5,
+    char:'ptolemy',
+    title:'Zeuge der Anklage',
+    subtitle:'Ptolemäus spricht – per Zeitreise aus dem 2. Jahrhundert',
+    text:`„Ich, Klaudios Ptolemaios, Astronom aus Alexandria, habe das vollständigste Bild des Universums aufgezeichnet! In meinem Werk <em>Almagest</em> beschreibe ich mathematisch genau, wie sich alle Planeten, die Sonne und der Mond auf <span class="highlight">kreisförmigen Bahnen um die Erde</span> bewegen.
+
+Mein Modell funktioniert: Es erlaubt uns, Planetenpositionen vorherzusagen – und das seit über 1400 Jahren! Ja, ich brauche manchmal sogenannte <em>Epizyklen</em> – kleine Kreise auf den großen Kreisen – um die Bewegungen genau zu erklären. Aber das Modell stimmt! Warum sollte man ein funktionierendes System ersetzen? Galilei und Kopernikus spinnen – die Erde ist das Zentrum des Universums!"`,
+    next:'q_ptolemaios'
+  },
+
+  q_ptolemaios: {
+    type:'quiz',
+    sceneNum:6,
+    char:'ptolemy',
+    question:'Was war das Besondere am Modell des Ptolemäus?',
+    options:[
+      { text:'Er behauptete, die Erde sei eine Scheibe.', correct:false },
+      { text:'Er stellte die Sonne in den Mittelpunkt und ließ die Erde darum kreisen.', correct:false },
+      { text:'Er beschrieb mathematisch, wie sich Planeten auf Kreisbahnen um die ruhende Erde bewegen – mit Epizykeln für genaue Berechnungen.', correct:true },
+      { text:'Er entdeckte die Jupitermonde und bewies das geozentrische Weltbild.', correct:false },
+    ],
+    next:'s_kopernikus'
+  },
+
+  s_kopernikus: {
+    type:'speech',
+    sceneNum:7,
+    char:'kopernikus',
+    title:'Zeuge der Verteidigung',
+    subtitle:'Nikolaus Kopernikus tritt auf',
+    text:`„Meine Damen und Herren des Tribunals, ich habe mein Leben damit verbracht, den Himmel zu beobachten und zu berechnen. Das Modell des Ptolemäus ist so kompliziert, dass man immer mehr <em>Ausnahmen und Korrekturen</em> einbauen muss. Ein gutes Modell sollte einfach und elegant sein.
+
+Wenn man jedoch annimmt, dass <span class="highlight">die Sonne im Mittelpunkt steht</span> und alle Planeten – auch die Erde – sich in Kreisbahnen um sie drehen, werden die Berechnungen viel einfacher und genauer. Die scheinbare Rückwärtsbewegung der Planeten am Himmel lässt sich plötzlich ganz natürlich erklären.
+
+Ich weiß, dass diese Idee unbequem ist. Deshalb habe ich mein Buch erst kurz vor meinem Tod veröffentlicht. Aber die Wahrheit lässt sich nicht ewig verbergen!"`,
+    next:'q_kopernikus'
+  },
+
+  q_kopernikus: {
+    type:'quiz',
+    sceneNum:8,
+    char:'kopernikus',
+    question:'Warum favorisiert Kopernikus das heliozentrische Modell?',
+    options:[
+      { text:'Er wurde von der Kirche dazu gezwungen.', correct:false },
+      { text:'Das geozentrische Modell von Ptolemäus ist zu kompliziert – das heliozentrische erklärt Planetenbewegungen einfacher und genauer.', correct:true },
+      { text:'Er konnte mit seinem Teleskop die Sonne im Mittelpunkt sehen.', correct:false },
+      { text:'Aristoteles hatte ihm das persönlich geraten.', correct:false },
+    ],
+    next:'s_galilei'
+  },
+
+  s_galilei: {
+    type:'speech',
+    sceneNum:9,
+    char:'galilei',
+    title:'Die Verteidigung',
+    subtitle:'Galileo Galilei spricht für sich',
+    text:`„Ich rede nicht aus Glauben oder Tradition – ich rede aus <em>Beobachtung</em>! Mit meinem verbesserten Fernrohr habe ich Dinge gesehen, die das Weltbild für immer verändern:
+
+Erstens: <span class="highlight">Die Monde des Jupiters</span>. Sie drehen sich um Jupiter – nicht um die Erde! Das beweist, dass nicht alles um die Erde kreisen muss.
+
+Zweitens: <span class="highlight">Die Phasen der Venus</span>. Die Venus zeigt alle Mondphasen – das ist nur möglich, wenn sie sich um die Sonne dreht.
+
+Drittens: <span class="highlight">Sonnenflecken</span>. Sie wandern über die Sonne – die Sonne dreht sich! Das Universum ist kein starres, perfektes Gebilde.
+
+Kardinal Bellarmino sagt, wir würden die Bewegung spüren müssen. Aber ich sage: Ein Schiff auf ruhigem Meer – spürst du, ob es sich bewegt, wenn du unter Deck bist? Nein! So ist es auch mit der Erde."`,
+    next:'q_galilei'
+  },
+
+  q_galilei: {
+    type:'quiz',
+    sceneNum:10,
+    char:'galilei',
+    question:'Welche Beobachtung Galileis ist ein starkes Argument GEGEN das geozentrische Weltbild?',
+    options:[
+      { text:'Er beobachtete, dass die Erde größer als die Sonne ist.', correct:false },
+      { text:'Er sah, dass die Monde des Jupiters sich um Jupiter drehen – nicht um die Erde.', correct:true },
+      { text:'Er entdeckte, dass der Mond keine eigene Atmosphäre hat.', correct:false },
+      { text:'Er bewies, dass die Planetenbahnen elliptisch sind.', correct:false },
+    ],
+    next:'colmatch'
+  },
+
+  colmatch: {
+    type:'colmatch',
+    sceneNum:11,
+    title:'Argumente sortieren',
+    subtitle:'Ordne die Argumente dem richtigen Weltbild zu! (Ziehen oder klicken)',
+    items:[
+      { text:'„Wir spüren keine Bewegung der Erde."', correct:'geo' },
+      { text:'Die Phasen der Venus beweisen, dass sie um die Sonne kreist.', correct:'helio' },
+      { text:'Die Bibel beschreibt die Erde als ruhenden Mittelpunkt.', correct:'geo' },
+      { text:'Die Monde des Jupiters drehen sich um Jupiter, nicht um die Erde.', correct:'helio' },
+      { text:'Ptolemäus sagt Planetenpositionen erfolgreich vorher.', correct:'geo' },
+      { text:'Das heliozentrische Modell erklärt Planetenbewegungen ohne viele Ausnahmen.', correct:'helio' },
+    ],
+    next:'rollenentscheidung'
+  },
+
+  rollenentscheidung: {
+    type:'roleChoice',
+    sceneNum:12,
+    title:'Dein Plädoyer',
+    subtitle:'Du bist Geschworene/r – aber jetzt musst du Farbe bekennen!',
+    text:'Du hast alle Argumente gehört. Für welche Seite willst du im Schlussplädoyer eintreten?',
+    next_helio:'s_plaedoyer_helio',
+    next_geo:'s_plaedoyer_geo'
+  },
+
+  s_plaedoyer_helio: {
+    type:'speech',
+    sceneNum:13,
+    char:'player',
+    title:'Dein Schlussplädoyer',
+    subtitle:'Du verteidigst das heliozentrische Weltbild',
+    text:`„Als Geschworene/r habe ich alle Argumente sorgfältig abgewogen. Mein Urteil steht fest:
+
+<span class="highlight">Galilei handelt aus wissenschaftlicher Überzeugung</span>, gestützt auf <em>direkte Beobachtungen</em> mit dem Fernrohr. Die Monde des Jupiters, die Phasen der Venus, die Sonnenflecken – all das sind überprüfbare Beweise.
+
+Das geozentrische Modell braucht immer mehr künstliche Korrekturen, um zu funktionieren. Das heliozentrische Modell hingegen erklärt dieselben Phänomene eleganter und genauer.
+
+Ein Modell, das auf Beobachtung und Logik beruht, verdient Gehör – auch wenn es unbequem ist. Galilei ist kein Ketzer, sondern ein Wissenschaftler!"`,
+    next:'abstimmung'
+  },
+
+  s_plaedoyer_geo: {
+    type:'speech',
+    sceneNum:13,
+    char:'player',
+    title:'Dein Schlussplädoyer',
+    subtitle:'Du vertrittst die Anklage – das geozentrische Weltbild',
+    text:`„Als Geschworene/r habe ich alle Argumente gehört. Im Jahr 1633 sehe ich folgendes:
+
+Das Modell des Ptolemäus hat <em>1400 Jahre lang funktioniert</em>. Es sagt Planetenpositionen korrekt vorher – das ist keine Kleinigkeit.
+
+<span class="highlight">Die gesellschaftliche und religiöse Ordnung</span> beruht auf dem Weltbild, das Gott uns durch die Bibel gegeben hat. Ein Fernrohr allein kann das nicht widerlegen.
+
+Galileis Beobachtungen sind interessant – aber unbewiesen. Wer garantiert, dass sein Fernrohr korrekt ist? Vorsicht und Respekt vor dem Überlieferten sind keine Schwäche, sondern Weisheit."`,
+    next:'abstimmung'
+  },
+
+  abstimmung: {
+    type:'vote',
+    sceneNum:14,
+    title:'Das Urteil',
+    subtitle:'Jetzt bist du gefragt – wie lautet dein Urteil?',
+    text:'Du hast alle Argumente gehört und dein Plädoyer gehalten. Entscheide: Hat Galilei Ketzerei begangen – oder hatte er wissenschaftlich Recht?',
+    next:'s_urteil'
+  },
+
+  s_urteil: {
+    type:'verdict',
+    sceneNum:15,
+    title:'Das historische Urteil',
+    subtitle:'Was wirklich geschah – und was die Wissenschaft sagt',
+    next:'zusammenfassung'
+  },
+
+  zusammenfassung: {
+    type:'summary',
+    sceneNum:16,
+    title:'Zusammenfassung',
+    subtitle:'Was hast du heute gelernt?',
+    next:'reflexion'
+  },
+
+  reflexion: {
+    type:'quiz',
+    sceneNum:17,
+    char:'player',
+    question:'Abschlussfrage: Welche Aussage über den Wandel der Weltbilder ist <strong>richtig</strong>?',
+    options:[
+      { text:'Das geozentrische Weltbild wurde sofort nach Kopernikus von allen akzeptiert.', correct:false },
+      { text:'Kopernikus, Galilei und Kepler lieferten gemeinsam Beweise für das heliozentrische Weltbild – obwohl die Kirche dagegen war.', correct:true },
+      { text:'Galilei erfand das Fernrohr als Erster.', correct:false },
+      { text:'Die Kirche hat Galilei hinrichten lassen.', correct:false },
+    ],
+    next:'ende'
+  },
+
+  ende: {
+    type:'end',
+    sceneNum:18,
+    title:'Ende des Tribunals',
+    subtitle:'...und sie dreht sich doch!'
+  }
+};
+
+// ═══════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+
+function saveResult(){
+  const data = JSON.parse(localStorage.getItem('tribunal_results')||'[]');
+  data.push({
+    name:player.name, cls:player.cls, score:player.score,
+    errors:player.errors, role:player.role||'—', verdict:player.verdict||'—',
+    date:new Date().toLocaleString('de-DE')
+  });
+  localStorage.setItem('tribunal_results', JSON.stringify(data));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1';
+  setTimeout(()=>t.style.opacity='0',2200);
+}
+
+
+function updateHUD(){
+  document.getElementById('hud-score').textContent=player.score+' Punkte';
+}
+
+function updateProgress(sceneNum){
+  const pct=Math.round((sceneNum/TOTAL_SCENES)*100);
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('hud-scene').textContent=`Szene ${sceneNum}/${TOTAL_SCENES}`;
+}
+
+// ═══════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════
+function goToScene(id){
+  currentScene=id;
+  const sc=SCENES[id];
+  if(!sc){ console.error('Scene not found:',id); return; }
+  updateProgress(sc.sceneNum||1);
+  const area=document.getElementById('main-area');
+  area.innerHTML='';
+  const card=document.createElement('div');
+  card.className='scene-card';
+
+  const renderers={
+    story: renderStory,
+    briefing: renderBriefing,
+    speech: renderSpeech,
+    quiz: renderQuiz,
+    colmatch: renderColmatch,
+    roleChoice: renderRoleChoice,
+    vote: renderVote,
+    verdict: renderVerdict,
+    summary: renderSummary,
+    end: renderEnd
+  };
+  (renderers[sc.type]||renderStory)(card,sc);
+  area.appendChild(card);
+  area.scrollTop=0;
+}
+
+// ── Char meta ──
+const CHARS={
+  bellarmino:{emoji:'⛪',name:'Kardinal Bellarmino',role:'Ankläger – Vertreter der Kirche',cls:'char-bellarmino',borderColor:'var(--bellarmino)'},
+  ptolemy:{emoji:'🏛️',name:'Ptolemäus',role:'Zeuge der Anklage – Geocentrismus',cls:'char-ptolemy',borderColor:'var(--ptolemy)'},
+  kopernikus:{emoji:'🌍',name:'Nikolaus Kopernikus',role:'Zeuge der Verteidigung',cls:'char-kopernikus',borderColor:'var(--kopernikus)'},
+  galilei:{emoji:'🔭',name:'Galileo Galilei',role:'Angeklagter',cls:'char-galilei',borderColor:'var(--galilei)'},
+  player:{emoji:'⚖️',name:'Du (Geschworene/r)',role:'Dein Plädoyer',cls:'char-player',borderColor:'var(--player)'}
+};
+
+function charHeader(charKey){
+  const c=CHARS[charKey]||CHARS.player;
+  return `<div class="char-header ${c.cls}">
+    <div class="char-avatar">${c.emoji}</div>
+    <div><div class="char-name">${c.name}</div><div class="char-role">${c.role}</div></div>
+  </div>`;
+}
+
+// ── STORY ──
+function renderStory(card,sc){
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle||''}</div>
+  <div class="story-text">${(sc.text||'').replace(/\n/g,'<br>')}</div>
+  <div class="scene-footer"><button id="btn-next" class="btn-next">Weiter ➔</button></div>`;
+  card.querySelector('#btn-next').addEventListener('click',()=>goToScene(sc.next));
+}
+
+// ── BRIEFING ──
+function renderBriefing(card,sc){
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="char-cards">
+    <div class="char-card gc"><div class="cc-avatar">🔭</div><div class="cc-body"><div class="cc-name">Galileo Galilei</div><div class="cc-role">Angeklagter</div><div class="cc-desc">Italienischer Astronom (1564–1642). Mit dem Fernrohr entdeckte er Jupitermonde und Venusp­hasen.</div></div></div>
+    <div class="char-card kc"><div class="cc-avatar">🌍</div><div class="cc-body"><div class="cc-name">Nikolaus Kopernikus</div><div class="cc-role">Zeuge der Verteidigung</div><div class="cc-desc">Polnischer Astronom (1473–1543). Stellte erstmals die Sonne in den Mittelpunkt des Sonnensystems.</div></div></div>
+    <div class="char-card bc"><div class="cc-avatar">⛪</div><div class="cc-body"><div class="cc-name">Kardinal Bellarmino</div><div class="cc-role">Ankläger (Kirche)</div><div class="cc-desc">Vertreter der katholischen Inquisition. Verteidigt das geozentrische Weltbild als Gottes Ordnung.</div></div></div>
+    <div class="char-card pc"><div class="cc-avatar">🏛️</div><div class="cc-body"><div class="cc-name">Ptolemäus</div><div class="cc-role">Zeuge der Anklage</div><div class="cc-desc">Griechischer Astronom (ca. 100–170 n. Chr.). Sein geozentrisches Modell galt 1400 Jahre als Standard.</div></div></div>
+  </div>
+  <div class="scene-footer"><button id="btn-next" class="btn-next">Verhandlung beginnen ⚖️</button></div>`;
+  card.querySelector('#btn-next').addEventListener('click',()=>goToScene(sc.next));
+}
+
+// ── SPEECH ──
+function renderSpeech(card,sc){
+  const c=CHARS[sc.char]||CHARS.player;
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle||''}</div>
+  ${charHeader(sc.char)}
+  <div class="speech-text" style="border-color:${c.borderColor}">${(sc.text||'').replace(/\n/g,'<br>')}</div>
+  <div class="scene-footer"><button id="btn-next" class="btn-next">Weiter ➔</button></div>`;
+  card.querySelector('#btn-next').addEventListener('click',()=>goToScene(sc.next));
+}
+
+// ── QUIZ ──
+function renderQuiz(card,sc){
+  const ch=sc.char?charHeader(sc.char):'';
+  const opts=shuffle([...sc.options]);
+  let attempts=0; let solved=false;
+  card.innerHTML=`<h2>Verständnisfrage</h2>${ch}
+  <div class="quiz-question">${sc.question}</div>
+  <div class="quiz-options" id="qopts">${opts.map((o,i)=>`<button class="quiz-option" data-i="${i}">${o.text}</button>`).join('')}</div>
+  <div class="quiz-feedback" id="qfb"></div>
+  <div class="scene-footer"><button id="btn-next" class="btn-next" disabled>Weiter ➔</button></div>`;
+  const fb=card.querySelector('#qfb');
+  const btn=card.querySelector('#btn-next');
+  card.querySelectorAll('.quiz-option').forEach((b,i)=>{
+    b.addEventListener('click',()=>{
+      if(solved) return;
+      const opt=opts[i];
+      if(opt.correct){
+        solved=true;
+        let pts=attempts===0?10:attempts===1?6:attempts===2?3:1;
+        player.score+=pts; updateHUD();
+        b.classList.add('correct');
+        fb.className='quiz-feedback ok';
+        fb.textContent=`✓ Richtig! +${pts} Punkte`;
+        card.querySelectorAll('.quiz-option').forEach(x=>x.disabled=true);
+        btn.disabled=false;
+      } else {
+        attempts++; player.errors++;
+        b.classList.add('wrong'); b.disabled=true;
+        fb.className='quiz-feedback err';
+        fb.textContent='✗ Nicht korrekt. Lies die Aussagen noch einmal.';
+      }
+    });
+  });
+  btn.addEventListener('click',()=>goToScene(sc.next));
+}
+
+// ── COLMATCH ──
+function renderColmatch(card,sc){
+  const items=shuffle([...sc.items]);
+  let placed={};
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="colmatch-pool" id="cm-pool">${items.map((it,i)=>`<div class="colmatch-tile" draggable="true" id="tile-${i}" data-i="${i}">${it.text}</div>`).join('')}</div>
+  <div class="colmatch-wrap">
+    <div class="colmatch-col geocol">
+      <h3>🌍 Geozentrisches Weltbild</h3>
+      <div class="colmatch-drop" id="drop-geo" data-col="geo"></div>
+    </div>
+    <div class="colmatch-col heliocol">
+      <h3>☀️ Heliozentrisches Weltbild</h3>
+      <div class="colmatch-drop" id="drop-helio" data-col="helio"></div>
+    </div>
+  </div>
+  <div class="colmatch-feedback" id="cm-fb"></div>
+  <div style="text-align:center;margin:10px 0"><button class="colmatch-check-btn" id="cm-check">Überprüfen ✓</button></div>
+  <div class="scene-footer"><button id="btn-next" class="btn-next" disabled>Weiter ➔</button></div>`;
+
+  // Click-to-assign (mobile friendly)
+  let selectedTile=null;
+  function selectTile(el){
+    if(selectedTile) selectedTile.style.outline='';
+    selectedTile=el;
+    if(el) el.style.outline='2px solid var(--accent)';
+  }
+
+  card.querySelectorAll('.colmatch-tile').forEach(tile=>{
+    // Drag
+    tile.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',tile.id); selectTile(null); });
+    // Click
+    tile.addEventListener('click',()=>{
+      if(selectedTile===tile){ selectTile(null); return; }
+      // If tile is in a drop zone already, return it to pool
+      const pool=card.querySelector('#cm-pool');
+      if(!pool.contains(tile)){
+        const idx=tile.dataset.i;
+        delete placed[idx];
+        tile.style.outline='';
+        pool.appendChild(tile);
+        selectTile(tile);
+        return;
+      }
+      selectTile(tile);
+    });
+  });
+
+  card.querySelectorAll('.colmatch-drop').forEach(drop=>{
+    drop.addEventListener('dragover',e=>{ e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave',()=>drop.classList.remove('drag-over'));
+    drop.addEventListener('drop',e=>{
+      e.preventDefault(); drop.classList.remove('drag-over');
+      const id=e.dataTransfer.getData('text/plain');
+      const tile=card.querySelector('#'+id);
+      if(tile){ drop.appendChild(tile); placed[tile.dataset.i]=drop.dataset.col; }
+    });
+    drop.addEventListener('click',()=>{
+      if(selectedTile){
+        const pool=card.querySelector('#cm-pool');
+        if(pool.contains(selectedTile)){
+          drop.appendChild(selectedTile);
+          placed[selectedTile.dataset.i]=drop.dataset.col;
+          selectedTile.style.outline='';
+          selectedTile=null;
+        }
+      }
+    });
+  });
+
+  const btn=card.querySelector('#btn-next');
+  const fb=card.querySelector('#cm-fb');
+  card.querySelector('#cm-check').addEventListener('click',()=>{
+    let correct=0; let total=items.length;
+    items.forEach((it,i)=>{
+      const tile=card.querySelector(`#tile-${i}`);
+      const userCol=placed[i];
+      if(!userCol){ tile.classList.remove('placed-correct','placed-wrong'); return; }
+      if(userCol===it.correct){ tile.classList.add('placed-correct'); tile.classList.remove('placed-wrong'); correct++; }
+      else { tile.classList.add('placed-wrong'); tile.classList.remove('placed-correct'); }
+    });
+    const pts=correct*3; player.score+=pts; updateHUD();
+    if(correct===total){
+      fb.textContent=`✓ Perfekt! Alle ${total} Argumente richtig zugeordnet! +${pts} Punkte`;
+      fb.style.color='#1eb450';
+      btn.disabled=false;
+    } else {
+      fb.textContent=`${correct} von ${total} richtig. Falsch platzierte sind markiert. +${pts} Punkte – versuche es nochmal!`;
+      fb.style.color='var(--accent2)';
+      if(correct>=Math.ceil(total/2)) btn.disabled=false;
+    }
+  });
+  btn.addEventListener('click',()=>goToScene(sc.next));
+}
+
+// ── ROLE CHOICE ──
+function renderRoleChoice(card,sc){
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="story-text" style="margin-bottom:20px">${sc.text}</div>
+  <div class="role-choices">
+    <div class="role-choice-btn heliozen" id="rc-helio">
+      <div class="rc-icon">🔭☀️</div>
+      <div class="rc-title" style="color:var(--galilei)">Verteidigung</div>
+      <div class="rc-desc">Ich verteidige Galilei und das <strong>heliozentrische Weltbild</strong>. Die Wissenschaft hat Recht!</div>
+    </div>
+    <div class="role-choice-btn geozen" id="rc-geo">
+      <div class="rc-icon">🌍⛪</div>
+      <div class="rc-title" style="color:var(--ptolemy)">Anklage</div>
+      <div class="rc-desc">Ich unterstütze die Kirche und das <strong>geozentrische Weltbild</strong>. Tradition und Ordnung zählen!</div>
+    </div>
+  </div>`;
+  card.querySelector('#rc-helio').addEventListener('click',()=>{
+    player.role='Verteidigung (heliozentrisch)';
+    showToast('Du vertrittst die Verteidigung!');
+    goToScene(sc.next_helio);
+  });
+  card.querySelector('#rc-geo').addEventListener('click',()=>{
+    player.role='Anklage (geozen.)';
+    showToast('Du vertrittst die Anklage!');
+    goToScene(sc.next_geo);
+  });
+}
+
+// ── VOTE ──
+function renderVote(card,sc){
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="story-text" style="margin-bottom:20px">${sc.text}</div>
+  <div class="vote-choices">
+    <button class="vote-btn guilty" id="v-guilty">⚔️ Schuldig!<br><small>Galilei hat Ketzerei begangen.</small></button>
+    <button class="vote-btn notguilty" id="v-notguilty">✔️ Nicht schuldig!<br><small>Galilei hatte wissenschaftlich Recht.</small></button>
+  </div>`;
+  card.querySelector('#v-guilty').addEventListener('click',()=>{
+    player.verdict='Schuldig'; goToScene(sc.next);
+  });
+  card.querySelector('#v-notguilty').addEventListener('click',()=>{
+    player.verdict='Nicht schuldig'; goToScene(sc.next);
+  });
+}
+
+// ── VERDICT ──
+function renderVerdict(card,sc){
+  const guilty=player.verdict==='Schuldig';
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="vote-result-box ${guilty?'historic':'science'}" style="margin-bottom:16px">
+    <strong>Dein Urteil:</strong> ${player.verdict==='Schuldig'?'⚔️ Schuldig':'✔️ Nicht schuldig'}<br>
+    ${guilty?'Du hast wie die historische Inquisition entschieden.':'Du hast wie die moderne Wissenschaft entschieden.'}
+  </div>
+  <div class="vote-result-box historic">
+    <strong>⚖️ Das historische Urteil (1633):</strong><br>
+    Die Inquisition befand Galilei für schuldig. Da er seine Theorien widerrief, wurde er zu <em>lebenslangem Hausarrest</em> verurteilt – und nicht hingerichtet. Beim Verlassen des Gerichtssaals soll er gemurmelt haben: <span style="color:var(--accent);font-style:italic">„...und sie dreht sich doch!"</span>
+  </div>
+  <div class="vote-result-box science" style="margin-top:12px">
+    <strong>🔭 Das wissenschaftliche Urteil:</strong><br>
+    Galilei hatte Recht. Das heliozentrische Weltbild ist heute Grundlage aller Astronomie. Erst 1992 – also 359 Jahre später – rehabilitierte die katholische Kirche offiziell Galileo Galilei.
+  </div>
+  <div class="scene-footer" style="margin-top:20px"><button class="btn-next" onclick="goToScene('zusammenfassung')">Zusammenfassung ➔</button></div>`;
+}
+
+// ── SUMMARY ──
+function renderSummary(card,sc){
+  card.innerHTML=`<h2>${sc.title}</h2><div class="scene-subtitle">${sc.subtitle}</div>
+  <div class="summary-grid">
+    <div class="summary-cell"><h4>🌍 Geozentrisches Weltbild</h4>Erde im Mittelpunkt. Sonne und Planeten kreisen darum. Vertreter: Aristoteles, Ptolemäus. Gültig bis zum 16./17. Jh.</div>
+    <div class="summary-cell"><h4>☀️ Heliozentrisches Weltbild</h4>Sonne im Mittelpunkt. Planeten, auch die Erde, kreisen darum. Vertreter: Kopernikus, Galilei, Kepler.</div>
+    <div class="summary-cell"><h4>🔭 Galileis Beweise</h4>Jupitermonde, Venusp­hasen, Sonnenflecken – direkte Beobachtungen mit dem Fernrohr.</div>
+    <div class="summary-cell"><h4>⛪ Reaktion der Kirche</h4>Verbot der Bücher, Prozess gegen Galilei 1633. Erst 1992 offiziell rehabilitiert.</div>
+  </div>
+  <div class="scene-footer"><button class="btn-next" onclick="goToScene('reflexion')">Abschlussfrage ➔</button></div>`;
+}
+
+// ── END ──
+function renderEnd(card,sc){
+  saveResult();
+  card.innerHTML=`<h2 style="text-align:center;font-size:2rem;margin-bottom:6px">${sc.title}</h2>
+  <div class="scene-subtitle" style="text-align:center;font-size:1.2rem;margin-bottom:24px">${sc.subtitle}</div>
+  <div class="score-box">
+    <div class="big-score">${player.score}</div>
+    <div class="score-label">Punkte · ${player.errors} Fehler</div>
+    <div style="margin-top:8px;font-size:0.9rem;color:var(--accent2)">Deine Rolle: ${player.role||'—'} · Urteil: ${player.verdict||'—'}</div>
+  </div>
+  <div class="story-text" style="text-align:center;margin-top:16px">
+    Gut gemacht, <em>${player.name}</em>! Du hast heute den Wandel der Weltbilder aus erster Hand erlebt.
+    Die Wissenschaft lebt vom Mut zu fragen – auch wenn es unbequem ist.<br><br>
+    <span class="highlight">...und sie dreht sich doch!</span>
+  </div>`;
+}
+
+// ═══════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════
+function startGame(){
+  const name=document.getElementById('l-name').value.trim();
+  const cls=document.getElementById('l-class').value.trim();
+  if(!name){ showToast('Bitte gib deinen Namen ein!'); return; }
+  player.name=name; player.cls=cls;
+  document.getElementById('hud-name').textContent=name+(cls?' · '+cls:'');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  goToScene('intro');
+}
+document.getElementById('l-name').addEventListener('keydown',e=>{ if(e.key==='Enter') startGame(); });
+
+// ═══════════════════════════════════
+// TEACHER
+// ═══════════════════════════════════
+let sortMode='date';
+document.getElementById('teacher-btn').addEventListener('click',()=>{
+  document.getElementById('teacher-overlay').classList.remove('hidden');
+  document.getElementById('teacher-content').classList.add('hidden');
+  document.getElementById('t-pw').value='';
+});
+function closeTeacher(){ document.getElementById('teacher-overlay').classList.add('hidden'); }
+function checkTeacherPw(){
+  if(document.getElementById('t-pw').value==='ursula'){
+    document.getElementById('teacher-content').classList.remove('hidden');
+    renderTeacherTable();
+  } else { showToast('Falsches Passwort!'); }
+}
+function sortResults(mode){ sortMode=mode; renderTeacherTable(); }
+function renderTeacherTable(){
+  let data=JSON.parse(localStorage.getItem('tribunal_results')||'[]');
+  if(sortMode==='date') data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  else if(sortMode==='score') data.sort((a,b)=>b.score-a.score);
+  else if(sortMode==='name') data.sort((a,b)=>a.name.localeCompare(b.name));
+  const avg=data.length?Math.round(data.reduce((s,r)=>s+r.score,0)/data.length):0;
+  const max=data.length?Math.max(...data.map(r=>r.score)):0;
+  const avgErr=data.length?Math.round(data.reduce((s,r)=>s+r.errors,0)/data.length):0;
+  document.getElementById('t-stats').innerHTML=`
+    <div class="t-stat"><div class="ts-val">${data.length}</div><div class="ts-lbl">Abgaben</div></div>
+    <div class="t-stat"><div class="ts-val">${avg}</div><div class="ts-lbl">Ø Punkte</div></div>
+    <div class="t-stat"><div class="ts-val">${max}</div><div class="ts-lbl">Höchstpunktzahl</div></div>
+    <div class="t-stat"><div class="ts-val">${avgErr}</div><div class="ts-lbl">Ø Fehler</div></div>`;
+  document.getElementById('t-tbody').innerHTML=data.map(r=>`<tr>
+    <td>${r.name}</td><td>${r.cls||'—'}</td><td>${r.score}</td><td>${r.errors}</td>
+    <td>${r.role||'—'}</td><td>${r.verdict||'—'}</td><td>${r.date}</td>
+  </tr>`).join('');
+}
+function exportCSV(){
+  const data=JSON.parse(localStorage.getItem('tribunal_results')||'[]');
+  const rows=[['Name','Klasse','Punkte','Fehler','Rolle','Urteil','Datum'],...data.map(r=>[r.name,r.cls||'',r.score,r.errors,r.role||'',r.verdict||'',r.date])];
+  const csv=rows.map(r=>r.join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);
+  a.download='tribunal_ergebnisse.csv'; a.click();
+}
+function clearResults(){
+  if(confirm('Wirklich alle Ergebnisse löschen?')&&confirm('Sicher? Das kann nicht rückgängig gemacht werden.')){
+    localStorage.removeItem('tribunal_results');
+    renderTeacherTable();
+    showToast('Ergebnisse gelöscht.');
+  }
+}
+</script>
+</body>
+</html>
